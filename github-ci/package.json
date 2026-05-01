@@ -5,6 +5,7 @@
   "author": "Mrmaxmeier <Mrmaxmeier@gmail.com>",
   "license": "ISC",
   "repository": "https://github.com/Mrmaxmeier/tectonic-on-arXiv.git",
+  "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "nodemon --exec \"npm start\"",
