@@ -1,0 +1,5 @@
+name: Tectonic-on-arXiv
+description: 'Runs tectonic against a corpus of arXiv papers'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
