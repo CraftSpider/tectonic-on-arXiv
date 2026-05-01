@@ -2,7 +2,7 @@ import {spawnSync, spawn} from "child_process"
 import {existsSync, readFileSync} from "fs"
 import pkg from 'nodegit';
 
-const {Repository, Commit, Reset, Merge, Object} = pkg;
+const {Repository, Commit, Reset, Merge} = pkg;
 import {Job, PR_RUN_DATASET} from "./misc.js"
 import {report_path, markdown_report, get_changes} from "./report.js"
 
