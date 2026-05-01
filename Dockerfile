@@ -17,7 +17,7 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o /tmp/rustup-init \
     && chmod +x /tmp/rustup-init \
-    && /tmp/rustup-init -y --default-toolchain nightly --profile minimal
+    && /tmp/rustup-init -y --profile minimal
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 COPY report_ci.py /root
