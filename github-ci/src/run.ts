@@ -10,7 +10,7 @@ import {report_path, markdown_report, get_changes} from "./report.js"
 const sleep = (m: number) => new Promise(r => setTimeout(r, m))
 
 async function open_repo() {
-    let repo = await Repository.open("/repo")
+    let repo = await Repository.open("/github/workspace")
     console.log("waiting a sec for fetchAll")
     await sleep(1000)
     console.log("fetchAll")
@@ -70,11 +70,11 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
         // }
 
         spawnSync("git", ["submodule", "update", "--init"], {
-            cwd: "/repo"
+            cwd: "/github/workspace"
         })
 
         let build_res = spawnSync("cargo", ["build", "--release"], {
-            cwd: "/repo"
+            cwd: "/github/workspace"
         })
 
         console.log("finished building")
@@ -137,7 +137,7 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
         }, 15000)
 
         console.log("starting report_ci.py")
-        let proc = spawn("python3", ["report_ci.py", `datasets/${PR_RUN_DATASET}`, "/repo", head_sha], {
+        let proc = spawn("python3", ["report_ci.py", `datasets/${PR_RUN_DATASET}`, "/github/workspace", head_sha], {
             cwd: "/root/"
         })
         proc.on("message", (msg) => {
