@@ -23,6 +23,7 @@ COPY report_ci.py /root
 COPY meta.py /root
 COPY github-ci /root/github-ci
 COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Change workdir for yarn - we don't rely on this in the entrypoint
 WORKDIR "/root/github-ci"
