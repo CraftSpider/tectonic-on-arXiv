@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-cd github-ci
+cd /root/github-ci
 yarn start

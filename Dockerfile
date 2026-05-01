@@ -19,10 +19,10 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o /tmp/rustup-ini
     && /tmp/rustup-init -y --default-toolchain nightly --profile minimal
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-WORKDIR /root
-COPY report_ci.py .
-COPY meta.py .
-COPY github-ci ./github-ci
+COPY report_ci.py /root
+COPY meta.py /root
+COPY github-ci /root/github-ci
+COPY entrypoint.sh /entrypoint.sh
 
 RUN apt-get install -y git build-essential clang libssl-dev libkrb5-dev libc++-dev wget krb5-config
 RUN yarn install && yarn cache clean && yarn run build
@@ -30,4 +30,4 @@ RUN yarn install && yarn cache clean && yarn run build
 # /repo is a bind mount and might have wonky uids that scare modern git versions
 RUN git config --global --add safe.directory "*"
 
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
