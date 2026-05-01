@@ -22,8 +22,8 @@ export async function get_merge_base(head_sha: string, base_branch: string) {
     let repo = await open_repo()
     console.log(`lookup ${head_sha}`);
     let head = await Commit.lookup(repo, head_sha)
-    console.log(`lookup ${base_branch}`);
-    let base = await repo.getReferenceCommit(base_branch);
+    console.log(`lookup origin/${base_branch}`);
+    let base = await repo.getReferenceCommit(`origin/${base_branch}`);
     let merge_base = await Merge.base(repo, head.id(), base.id())
     return merge_base.tostrS()
 }
