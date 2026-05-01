@@ -8,15 +8,14 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "nodemon --exec \"npm start\"",
-    "start": "probot run ./lib/index.js",
+    "start": "node ./lib/index.js",
     "lint": "standard **/*.ts --fix"
   },
   "dependencies": {
     "@types/async": "^3.2.24",
     "@types/nodegit": "^0.28.7",
     "async": "^3.2.6",
-    "nodegit": "^0.28.0-alpha.28",
-    "probot": "^13.3.8"
+    "nodegit": "^0.28.0-alpha.38"
   },
   "devDependencies": {
     "@types/node": "^22.7.4",

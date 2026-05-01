@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y htop python3 python3-pip curl git p7zip
  libfreetype6 libfreetype6-dev libharfbuzz-dev \
  fontconfig libgraphite2-3 libgraphite2-dev \
  libfontconfig1 libfontconfig1-dev libmagic-dev \
- python3-click python3-magic
+ python3-click python3-magic \
+ git build-essential clang libssl-dev libkrb5-dev libc++-dev wget krb5-config
 
 RUN curl -sL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
@@ -21,14 +22,12 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 
 COPY report_ci.py /root
 COPY meta.py /root
-COPY github-ci /root/github-ci
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+COPY github-ci /root/github-ci
 
 # Change workdir for yarn - we don't rely on this in the entrypoint
 WORKDIR "/root/github-ci"
-
-RUN apt-get install -y git build-essential clang libssl-dev libkrb5-dev libc++-dev wget krb5-config
 RUN yarn install && yarn cache clean && yarn run build
 
 # /repo is a bind mount and might have wonky uids that scare modern git versions
