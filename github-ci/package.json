@@ -15,6 +15,7 @@
   "dependencies": {
     "@types/async": "^3.2.24",
     "@types/nodegit": "^0.28.7",
+    "@actions/core": "^3.0.1",
     "async": "^3.2.6",
     "nodegit": "^0.28.0-alpha.38"
   },

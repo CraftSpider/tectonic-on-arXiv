@@ -1,5 +1,6 @@
 import {spawnSync, spawn} from "child_process"
 import {existsSync, readFileSync} from "fs"
+import {setFailed} from '@actions/core'
 import pkg from 'nodegit';
 
 const {Repository, Commit, Reset, Merge} = pkg;
@@ -30,7 +31,7 @@ export async function get_merge_base(head_sha: string, base_branch: string) {
 
 export async function run_check({head_sha, head_branch, base_sha, check_run_id}: Job) {
     if (existsSync(report_path(head_sha))) {
-        console.log("skipping", head_sha)
+        console.log("skipping", head_sha);
         // if (context && check_run_id)
         // TODO
         // await context.octokit.checks.update(context.repo({
@@ -93,6 +94,7 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
             //             summary: `couldn't build\n\`\`\`\n${build_res.stderr}\n${build_res.output}\n\`\`\``
             //         }
             //     }))
+            setFailed(`couldn't build\n\`\`\`\n${build_res.stderr}\n${build_res.output}\n\`\`\``);
 
             return
         }
