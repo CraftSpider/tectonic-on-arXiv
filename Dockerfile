@@ -24,6 +24,9 @@ COPY meta.py /root
 COPY github-ci /root/github-ci
 COPY entrypoint.sh /entrypoint.sh
 
+# Change workdir for yarn - we don't rely on this in the entrypoint
+WORKDIR "/root/github-ci"
+
 RUN apt-get install -y git build-essential clang libssl-dev libkrb5-dev libc++-dev wget krb5-config
 RUN yarn install && yarn cache clean && yarn run build
 
