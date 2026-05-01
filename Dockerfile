@@ -30,7 +30,4 @@ COPY github-ci /root/github-ci
 WORKDIR "/root/github-ci"
 RUN yarn install && yarn cache clean && yarn run build
 
-# /repo is a bind mount and might have wonky uids that scare modern git versions
-RUN git config --global --add safe.directory "*"
-
 ENTRYPOINT ["/entrypoint.sh"]
