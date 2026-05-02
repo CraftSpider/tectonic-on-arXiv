@@ -7,12 +7,14 @@ declare global {
             GITHUB_HEAD_REF: string;
             GITHUB_BASE_REF?: string;
             GITHUB_RUN_ID: string;
+            TECTONIC_WORKSPACE?: string;
+            HEAD_COMMIT: string;
         }
     }
 }
 
 async function main() {
-    let head_sha: string = process.env.GITHUB_SHA
+    let head_sha: string = process.env.HEAD_COMMIT
     let head_branch: string = process.env.GITHUB_HEAD_REF
     let base_branch: string | undefined = process.env.GITHUB_BASE_REF
     let check_run_id: number = parseInt(process.env.GITHUB_RUN_ID);

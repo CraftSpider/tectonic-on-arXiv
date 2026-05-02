@@ -3,4 +3,5 @@
 git config --global --add safe.directory "*"
 rustup default stable
 cd /root/github-ci
+export HEAD_COMMIT=$1
 yarn start

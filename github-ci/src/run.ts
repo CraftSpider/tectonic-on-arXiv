@@ -10,8 +10,12 @@ import {report_path, markdown_report, get_changes} from "./report.js"
 
 const sleep = (m: number) => new Promise(r => setTimeout(r, m))
 
+function workspace() {
+    return process.env.TECTONIC_WORKSPACE ?? "/github/workspace";
+}
+
 async function open_repo() {
-    let repo = await Repository.open("/github/workspace")
+    let repo = await Repository.open(workspace())
     console.log("waiting a sec for fetchAll")
     await sleep(1000)
     console.log("fetchAll")

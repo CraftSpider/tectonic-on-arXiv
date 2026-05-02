@@ -1,5 +1,11 @@
 name: Tectonic-on-arXiv
 description: 'Runs tectonic against a corpus of arXiv papers'
+inputs:
+  head:
+    description: 'The head commit to test'
+    required: true
 runs:
   using: 'docker'
   image: 'Dockerfile'
+  args:
+    - ${{ inputs.head }}
