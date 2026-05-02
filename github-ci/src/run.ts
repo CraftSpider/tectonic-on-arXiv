@@ -108,9 +108,11 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
         })
 
         // devnull stdin/stdout so that i/o buffers don't break subprocess
-        proc.stdout.on("data", () => {
+        proc.stdout.on("data", (data) => {
+            console.log("stdout: ", data.toString())
         })
-        proc.stderr.on("data", () => {
+        proc.stderr.on("data", (data) => {
+            console.log("stderr: ", data.toString())
         })
         await new Promise(resolve => proc.on("exit", resolve))
         console.log("report_ci.py finished")
