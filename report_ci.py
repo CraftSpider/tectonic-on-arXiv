@@ -137,6 +137,7 @@ def report(corpus: str, repo: str, name: str):
 
     reportpath = Path("reports") / (name + ".jsonl")
 
+    os.makedirs(reportpath.parent, exist_ok=True)
     reportlog = open(reportpath, "w")
 
     reportlog.write(json.dumps(meta) + "\n")
