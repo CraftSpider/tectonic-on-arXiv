@@ -113,6 +113,7 @@ def do_work(sample: Path, maindoc: str, tectonic: Path | str) -> dict[str, objec
 
 
 def report(corpus: str, repo: str, name: str):
+    sys.stdout.line_buffering = False
     with open(corpus + ".json") as f:
         sample_maindoc = json.load(f)
 
@@ -137,15 +138,15 @@ def report(corpus: str, repo: str, name: str):
 
     reportpath = Path("reports") / (name + ".jsonl")
 
-    print(reportpath.absolute())
+    print(reportpath.absolute(), flush=True)
     os.makedirs(reportpath.parent, exist_ok=True)
     reportlog = open(reportpath, "w")
 
     reportlog.write(json.dumps(meta) + "\n")
     reportlog.flush()
-    print(json.dumps(meta))
+    print(json.dumps(meta), flush=True)
 
-    subprocess.check_output("cargo build --release".split(), cwd=repo)
+    subprocess.check_output("cargo build --release".split(), cwd=repo, stderr=subprocess.STDOUT)
     tectonic = Path(repo) / "target" / "release" / "tectonic"
     # ensure that the tectonic binary is not replaced with another version
     tectonic_temp = tempfile.NamedTemporaryFile(
