@@ -113,7 +113,6 @@ def do_work(sample: Path, maindoc: str, tectonic: Path | str) -> dict[str, objec
 
 
 def report(corpus: str, repo: str, name: str):
-    sys.stdout.line_buffering = False
     with open(corpus + ".json") as f:
         sample_maindoc = json.load(f)
 
