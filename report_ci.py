@@ -1,7 +1,6 @@
 import sys
 import os
 import json
-from datetime import datetime
 import time
 import tarfile
 import gzip
@@ -10,15 +9,15 @@ from pathlib import Path
 import subprocess
 import tempfile
 import hashlib
-from functools import reduce
 import queue
 import threading
+from typing import overload, Literal
 
 
-def sha256sum(filename):
+def sha256sum(filename: str | Path) -> str:
     # https://stackoverflow.com/a/44873382
     h = hashlib.sha256()
-    b = bytearray(128*1024)
+    b = bytearray(128 * 1024)
     mv = memoryview(b)
     with open(filename, 'rb', buffering=0) as f:
         for n in iter(lambda: f.readinto(mv), 0):
@@ -26,7 +25,19 @@ def sha256sum(filename):
     return h.hexdigest()
 
 
-def capture_files(d, excluded=None, as_set=False):
+@overload
+def capture_files(d: Path, excluded: set[str] | None = None, as_set: Literal[True] = ...) -> set[str]: ...
+
+
+@overload
+def capture_files(d: Path, excluded: set[str] | None = None, as_set: Literal[False] = ...) -> dict[str, str]: ...
+
+
+@overload
+def capture_files(d: Path, excluded: set[str] | None = None, as_set: bool = False) -> set[str] | dict[str, str]: ...
+
+
+def capture_files(d: Path, excluded: set[str] | None = None, as_set: bool = False) -> dict[str, str] | set[str]:
     captured = {}
     _set = set()
     for f in d.iterdir():
@@ -49,11 +60,8 @@ def capture_files(d, excluded=None, as_set=False):
     return captured
 
 
-_libmagic_threadsafe = threading.Lock()
-
-
 class TestEnv(object):
-    def __init__(self, sample, is_tar):
+    def __init__(self, sample: Path, is_tar: bool):
         self.tmpdir = Path(tempfile.mkdtemp('ttrac'))
         submission_data_path = self.tmpdir / sample.stem
         with gzip.open(sample) as gz:
@@ -80,7 +88,7 @@ ARGUMENTS = [
 ]
 
 
-def do_work(sample, maindoc, tectonic):
+def do_work(sample: Path, maindoc: str, tectonic: Path | str) -> dict[str, object]:
     print(sample)
     env = os.environ.copy()
     env["SOURCE_DATE_EPOCH"] = "1456304492"
@@ -104,7 +112,7 @@ def do_work(sample, maindoc, tectonic):
     return report
 
 
-def report(corpus, repo, name):
+def report(corpus: str, repo: str, name: str):
     with open(corpus + ".json") as f:
         sample_maindoc = json.load(f)
 

@@ -1,26 +1,30 @@
-import click
-import magic
+from tarfile import TarInfo
 
-import threading
+import click
+import puremagic as magic
+
 import tempfile
-import os
 import json
 import tarfile
 import gzip
 import shutil
 from pathlib import Path
 
+from puremagic import PureError
+
 from heuristics import get_maindoc, EXCLUDED_SAMPLES
 
-_libmagic_threadsafe = threading.Lock()
+
+def tar_filter(member: TarInfo, path: str) -> TarInfo | None:
+    member.name = member.name.replace(':', '_colon_').replace('\\', '_backslash_').replace('\n', '_newline_').replace(
+        '\r', '_carriage_return_').replace('\t', '_tab_')
+    return member
 
 
 class TestEnv(object):
-    def __init__(self, sample):
+    def __init__(self, sample: Path):
         self.tmpdir = Path(tempfile.mkdtemp('ttrac'))
-        with _libmagic_threadsafe:
-            assert magic.detect_from_filename(
-                sample).mime_type == 'application/gzip'
+        assert magic.from_extension(magic.ext_from_filename(sample)) == 'application/gzip'
 
         submission_data_path = self.tmpdir / sample.stem
 
@@ -28,11 +32,14 @@ class TestEnv(object):
             with open(submission_data_path, "wb") as f:
                 shutil.copyfileobj(gz, f)
 
-        with _libmagic_threadsafe:
-            if magic.detect_from_filename(submission_data_path).mime_type == "application/x-tar":
-                with tarfile.open(submission_data_path, 'r') as tar:
-                    tar.extractall(path=self.tmpdir)
-                submission_data_path.unlink()
+        try:
+            ext = magic.from_extension(magic.ext_from_filename(submission_data_path))
+        except PureError:
+            ext = None
+        if ext == "application/x-tar":
+            with tarfile.open(submission_data_path, 'r') as tar:
+                tar.extractall(path=self.tmpdir, filter=tar_filter)
+            submission_data_path.unlink()
 
     def __enter__(self):
         return self.tmpdir
@@ -41,17 +48,18 @@ class TestEnv(object):
         shutil.rmtree(self.tmpdir)
 
 
-def prepare(sample):
+def prepare(sample: Path) -> str | None:
     if sample.stat().st_size < 100:
         # submission was withdrawn
-        return
+        return None
     if sample.stem in EXCLUDED_SAMPLES:
-        return
+        return None
 
     with TestEnv(sample) as d:
         maindoc = get_maindoc(d, sample)
         if maindoc:
             return maindoc.name
+    return None
 
 
 @click.command()

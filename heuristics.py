@@ -1,3 +1,5 @@
+from pathlib import Path
+
 EXCLUDED_SAMPLES = [
     "1702.07035",  # no tex sources
     "1702.07668",
@@ -49,7 +51,7 @@ ENTRY_FILES = [
 ]
 
 
-def get_maindoc(p, sample):
+def get_maindoc(p: Path, sample: Path) -> Path | None:
     viable = []
     for x in filter(lambda x: x.suffix == '.tex', p.iterdir()):
         if sample.stem == "1702.06452" and x.name == "skeleton.tex":
