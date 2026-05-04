@@ -20,6 +20,11 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o /tmp/rustup-ini
     && /tmp/rustup-init -y --profile minimal
 ENV PATH="/root/.cargo/bin:${PATH}"
 
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0 \
+ 	&& apt-add-repository https://cli.github.com/packages \
+    && apt update \
+    && apt install gh
+
 COPY report_ci.py /root
 COPY meta.py /root
 COPY entrypoint.sh /entrypoint.sh

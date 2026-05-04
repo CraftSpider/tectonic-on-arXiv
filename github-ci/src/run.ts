@@ -23,12 +23,12 @@ async function open_repo() {
     return repo
 }
 
-export async function get_merge_base(head_sha: string, base_branch: string) {
+export async function get_merge_base(head_sha: string, base_sha: string) {
     let repo = await open_repo()
     console.log(`lookup ${head_sha}`);
     let head = await Commit.lookup(repo, head_sha)
-    console.log(`lookup origin/${base_branch}`);
-    let base = await repo.getReferenceCommit(`origin/${base_branch}`);
+    console.log(`lookup ${base_sha}`);
+    let base = await Commit.lookup(repo, base_sha);
     let merge_base = await Merge.base(repo, head.id(), base.id())
     return merge_base.tostrS()
 }
@@ -59,11 +59,11 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
         console.log("building...")
 
         spawnSync("git", ["submodule", "update", "--init"], {
-            cwd: "/github/workspace"
+            cwd: workspace()
         })
 
         let build_res = spawnSync("cargo", ["build", "--release"], {
-            cwd: "/github/workspace"
+            cwd: workspace()
         })
 
         console.log("finished building")
@@ -91,7 +91,7 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
         }, 15000)
 
         console.log("starting report_ci.py")
-        let proc = spawn("python3", ["report_ci.py", `/github/workspace/datasets/${PR_RUN_DATASET}`, "/github/workspace", head_sha], {
+        let proc = spawn("python3", ["report_ci.py", `${workspace()}/datasets/${PR_RUN_DATASET}`, workspace(), head_sha], {
             cwd: "/root/"
         })
         proc.on("message", (msg) => {

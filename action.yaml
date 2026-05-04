@@ -4,8 +4,13 @@ inputs:
   head:
     description: 'The head commit to test'
     required: true
+  base:
+    description: 'The base commit to test against'
+    required: false
+    default: ''
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
     - ${{ inputs.head }}
+    - ${{ inputs.base }}

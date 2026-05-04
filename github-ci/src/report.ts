@@ -1,4 +1,4 @@
-import { readFileSync, statSync } from "fs";
+import {readFileSync, statSync} from "fs";
 
 export interface SampleRun {
     sample: string,
@@ -8,7 +8,12 @@ export interface SampleRun {
 }
 
 export function get_samples(sha: string) {
-    let results = readFileSync(report_path(sha))
+    let results;
+    try {
+        results = readFileSync(report_path(sha))
+    } catch (e) {
+        return [];
+    }
     let res = []
     for (let s of results.toString().split("\n")) {
         if (!s) continue
@@ -90,7 +95,7 @@ export function report_path(sha: string) {
 export function markdown_report(dataset: string, a: string, b: string, eta?: string) {
     const pre = (text: string) => '`' + text + '`';
 
-    let { missing, identical, identicalSuccessful, different, regressions, changes } = get_changes(a, b)
+    let {missing, identical, identicalSuccessful, different, regressions, changes} = get_changes(a, b)
 
     function objectsTable(sA: SampleRun, sB: SampleRun) {
         let objects = Array.from(new Set([...Object.keys(sA.results), ...Object.keys(sB.results)]))
