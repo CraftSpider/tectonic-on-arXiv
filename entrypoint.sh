@@ -13,6 +13,7 @@ if [ -n "$2" ]; then
 #  fi
 #  gh run download $workflow_id -n tectonic-on-arxiv
 #  unzip tectonic-on-arxiv.zip -d /root/reports/
+  echo "Get base"
 fi
 
 cd /root/github-ci
