@@ -86,7 +86,7 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
             console.log(`still going ${head_sha} ${eta}`)
             if (base_sha) {
                 summary.clear()
-                    .then(() => summary.addRaw(markdown_report(PR_RUN_DATASET, base_sha, head_sha)));
+                    .then(() => summary.addRaw(markdown_report(PR_RUN_DATASET, base_sha, head_sha, eta)));
             }
         }, 15000)
 

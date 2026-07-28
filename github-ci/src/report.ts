@@ -42,8 +42,8 @@ export function get_changes(a: string, b: string) {
     let identical = 0
     let different = 0
     let identicalSuccessful = 0
-    let regressions = []
-    let changes = []
+    let regressions: [SampleRun, SampleRun][] = []
+    let changes: [SampleRun, SampleRun][] = []
     for (let sample of samples) {
         let sA = samplesA[sample]
         let sB = samplesB[sample]
@@ -88,49 +88,71 @@ export function get_changes(a: string, b: string) {
     }
 }
 
+function objects_table(sA: SampleRun, sB: SampleRun) {
+    const pre = (text: string) => '`' + text + '`';
+    const cmp = (a: string, b: string) => `${pre(a)} | ${a === b ? '=' : '**≠**'} | ${pre(b)}`
+
+    let objects = Array.from(new Set([...Object.keys(sA.results), ...Object.keys(sB.results)]))
+    objects.sort()
+    let result = ''
+    result += '| File | Base |     | PR   |\n'
+    result += '| ---- | ---- | --- | ---- |\n'
+    result += `| _Statuscode_ | ${cmp(sA.statuscode.toString(), sB.statuscode.toString())} |\n`
+    for (let obj of objects) {
+        let objA = sA.results[obj]
+        let objB = sB.results[obj]
+        result += `| ${pre(obj)} | ${cmp(objA, objB)} |\n`
+    }
+    return result
+}
+
+function make_section(data: [SampleRun, SampleRun][], kind: string) {
+    if (data.length) {
+        let smallest = +Infinity;
+        let smallest_text = '';
+
+        let count = 0;
+        let sample_table = '';
+
+        for (let [sA, sB] of data) {
+            if (count < 50) {
+                sample_table += `### ${sA.sample}\n`
+                sample_table += objects_table(sA, sB) + '\n'
+            }
+            count += 1;
+
+            let stat = statSync(`/root/datasets/${data}/${sA.sample}.gz`)
+            if (stat && stat.size < smallest) {
+                smallest = stat.size
+                smallest_text = `## Smallest ${kind}: [${sA.sample}](https://arxiv.org/e-print/${sA.sample})\nSize: ${stat.size} bytes gz'd\n\n${objects_table(sA, sB)}\n`
+            }
+        }
+
+        return `
+${smallest_text}
+
+## ${kind} (${data.length})
+
+${sample_table}
+
+${data.length >= 50 ? '' : `Too many ${kind}s for GitHub's API payload size limit. Results truncated...`}`;
+    } else {
+        return ''
+    }
+}
+
 export function report_path(sha: string) {
     return '/root/reports/' + sha + '.jsonl'
 }
 
 export function markdown_report(dataset: string, a: string, b: string, eta?: string) {
-    const pre = (text: string) => '`' + text + '`';
-
     let {missing, identical, identicalSuccessful, different, regressions, changes} = get_changes(a, b)
 
-    function objectsTable(sA: SampleRun, sB: SampleRun) {
-        let objects = Array.from(new Set([...Object.keys(sA.results), ...Object.keys(sB.results)]))
-        objects.sort()
-        let result = ''
-        result += '| File | Base |     | PR   |\n'
-        result += '| ---- | ---- | --- | ---- |\n'
-        result += `| _Statuscode_ | ${cmp(sA.statuscode.toString(), sB.statuscode.toString())} |\n`
-        for (let obj of objects) {
-            let objA = sA.results[obj]
-            let objB = sB.results[obj]
-            result += `| ${pre(obj)} | ${cmp(objA, objB)} |\n`
-        }
-        return result
-    }
-
-    let smallestRegression = +Infinity
-    let smallestRegressionText = ''
-
-    let changesText = ''
-    let cmp = (a: string, b: string) => `${pre(a)} | ${a === b ? '=' : '**≠**'} | ${pre(b)}`
-    let kind = regressions.length ? 'Regression' : 'Change'
-    for (let [sA, sB] of (regressions.length ? regressions : changes)) {
-        changesText += `### ${sA.sample}\n`
-        changesText += objectsTable(sA, sB) + '\n'
-
-        let stat = statSync(`/root/datasets/${dataset}/${sA.sample}.gz`)
-        if (stat && stat.size < smallestRegression) {
-            smallestRegression = stat.size
-            smallestRegressionText = `## Smallest ${kind}: [${sA.sample}](https://arxiv.org/e-print/${sA.sample})\nSize: ${stat.size} bytes gz'd\n\n${objectsTable(sA, sB)}\n`
-        }
-    }
+    let regressionSection = make_section(regressions, "Regression");
+    let changeSection = make_section(changes, "Change");
 
     return `
-  ${eta ? ':construction: This test run is currently in progress. :construction:' : ''}
+  ${eta ? `:construction: This test run is currently in progress. ${eta} :construction:` : ''}
   
   ${a} vs ${b}
   
@@ -144,11 +166,7 @@ export function markdown_report(dataset: string, a: string, b: string, eta?: str
   | Regressions | ${regressions.length} |
   | Missing  | ${missing} |
   
-  ${smallestRegressionText}
+  ${regressionSection}
   
-  ## Changes (${changes.length})
-  
-  ${changes.length < 80 ? changesText : 'Too many changes for GitHub\'s API payload size limit.'}
-  
-  `
+  ${changeSection}`;
 }
