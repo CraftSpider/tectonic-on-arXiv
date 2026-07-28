@@ -43,15 +43,15 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
     let repo = await open_repo()
 
     const started_at = new Date().toISOString()
-    const name = 'tectonic-on-arXiv'
-
 
     let etaTimer = undefined
 
     try {
         let commit = await Commit.lookup(repo, head_sha)
-        if (!commit)
-            throw new Error(`unknown commit ${head_sha}`)
+        if (!commit) {
+            setFailed(`unknown commit ${head_sha}`);
+            return
+        }
 
         await Reset.reset(repo, commit, Reset.TYPE.HARD, {})
         console.log("did checkout")

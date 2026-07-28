@@ -15,10 +15,11 @@ declare global {
 }
 
 async function main() {
-    let head_sha: string = process.env.HEAD_COMMIT;
-    let head_branch: string = process.env.GITHUB_HEAD_REF;
-    let base_sha1: string | undefined = process.env.BASE_COMMIT;
-    let check_run_id: number = parseInt(process.env.GITHUB_RUN_ID);
+    let head_sha = process.env.HEAD_COMMIT;
+    let head_branch = process.env.GITHUB_HEAD_REF;
+    let base_sha1 = process.env.BASE_COMMIT;
+    let check_run_id = parseInt(process.env.GITHUB_RUN_ID);
+
     // ensure that base_sha has a report ready
     // jobs.push({head_sha: base_sha})
     // start regression check
