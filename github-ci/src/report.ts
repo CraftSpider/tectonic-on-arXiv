@@ -121,7 +121,7 @@ function make_section(data: [SampleRun, SampleRun][], kind: string) {
             }
             count += 1;
 
-            let stat = statSync(`/root/datasets/${data}/${sA.sample}.gz`)
+            let stat = statSync(`/root/github-ci/datasets/${data}/${sA.sample}.gz`)
             if (stat && stat.size < smallest) {
                 smallest = stat.size
                 smallest_text = `## Smallest ${kind}: [${sA.sample}](https://arxiv.org/e-print/${sA.sample})\nSize: ${stat.size} bytes gz'd\n\n${objects_table(sA, sB)}\n`
@@ -142,7 +142,7 @@ ${data.length >= 50 ? '' : `Too many ${kind}s for GitHub's API payload size limi
 }
 
 export function report_path(sha: string) {
-    return '/root/reports/' + sha + '.jsonl'
+    return '/root/github-ci/reports/' + sha + '.jsonl'
 }
 
 export function markdown_report(dataset: string, a: string, b: string, eta?: string) {

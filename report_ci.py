@@ -11,7 +11,7 @@ import tempfile
 import hashlib
 import queue
 import threading
-from typing import overload, Literal
+from typing import overload, Literal, Union
 
 
 def sha256sum(filename: str | Path) -> str:
@@ -154,13 +154,14 @@ def report(corpus: str, repo: str, name: str):
     tectonic_temp.close()
     tectonic = tectonic_temp.name
 
-    work = queue.Queue()
+    work: queue.Queue[Union[Path, None]] = queue.Queue()
     outlock = threading.Lock()
     num_worker_threads = 16
 
     def worker():
-        try:
-            while True:
+        while True:
+            item = None
+            try:
                 item = work.get()
                 if item is None:
                     print("worker shutting down")
@@ -172,9 +173,13 @@ def report(corpus: str, repo: str, name: str):
                 with outlock:
                     reportlog.write(json.dumps(report) + "\n")
                     reportlog.flush()
-        except Exception as e:
-            print(f"worker encountered exception ({e}), shutting down")
-            work.shutdown(immediate=True)
+            except Exception as e:
+                print(f"worker encountered exception ({e}), skipping this item")
+                work.task_done()
+                with outlock:
+                    reportlog.write(json.dumps({"sample": item.stem, "statuscode": -1,
+                                                "seconds": 0, "results": []}))
+                return
 
     threads = []
     for _ in range(num_worker_threads):
