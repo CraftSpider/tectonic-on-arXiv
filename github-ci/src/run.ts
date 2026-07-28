@@ -69,11 +69,17 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
             return
         }
 
-        let report_start = new Date()
+        let report_start = +new Date()
+
         etaTimer = setInterval(() => {
-            let res = readFileSync(report_path(workspace(), head_sha))
+            let res;
+            try {
+                res = readFileSync(report_path(workspace(), head_sha))
+            } catch (e) {
+                return;
+            }
             let lines = res.toString().match(/\n/g)!.length
-            let seconds = (new Date() as any - (report_start as any)) as number / 1000
+            let seconds = (+new Date() - report_start) / 1000
             let speed = (lines / seconds)
             let SAMPLES = 7979 // TODO: read dataset json
             let etaSecs = Math.round((SAMPLES - lines) / speed)
