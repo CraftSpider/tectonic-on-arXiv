@@ -1,14 +1,12 @@
-version: '3'
-
 services:
   app:
     build: .
     #user: ${UID}
     volumes:
-      - ./datasets:/root/datasets:ro
-      - ./reports:/root/reports:rw
-      - ./objects:/root/objects:rw
-      - ./ci-repo:/repo:rw
+      - ./datasets:/github/workspace/datasets:ro
+      - ./reports:/github/workspace/reports:rw
+      - ./objects:/github/workspace/objects:rw
+      - USERS_TECTONIC_DIR:/github/workspace:rw
       - ./ci-tex-cache:/root/.cache/Tectonic:rw
       - ./ci-cargo-cache/git:/root/.cargo/git:rw
       - ./ci-cargo-cache/registry:/root/.cargo/registry:rw
