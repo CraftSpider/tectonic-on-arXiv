@@ -7,10 +7,10 @@ export interface SampleRun {
     results: { [key: string]: string }
 }
 
-export function get_samples(sha: string) {
+export function get_samples(workspace: string, sha: string) {
     let results;
     try {
-        results = readFileSync(report_path(sha))
+        results = readFileSync(report_path(workspace, sha))
     } catch (e) {
         return [];
     }
@@ -25,13 +25,13 @@ export function get_samples(sha: string) {
 }
 
 
-export function get_changes(a: string, b: string) {
+export function get_changes(workspace: string, a: string, b: string) {
     let samplesA: { [key: string]: SampleRun } = {}
     let samplesB: { [key: string]: SampleRun } = {}
 
-    for (let sA of get_samples(a))
+    for (let sA of get_samples(workspace, a))
         samplesA[sA.sample] = sA
-    for (let sB of get_samples(b))
+    for (let sB of get_samples(workspace, b))
         samplesB[sB.sample] = sB
 
 
@@ -106,7 +106,7 @@ function objects_table(sA: SampleRun, sB: SampleRun) {
     return result
 }
 
-function make_section(data: [SampleRun, SampleRun][], kind: string) {
+function make_section(workspace: string, data: [SampleRun, SampleRun][], kind: string) {
     if (data.length) {
         let smallest = +Infinity;
         let smallest_text = '';
@@ -121,7 +121,7 @@ function make_section(data: [SampleRun, SampleRun][], kind: string) {
             }
             count += 1;
 
-            let stat = statSync(`/root/github-ci/datasets/${data}/${sA.sample}.gz`)
+            let stat = statSync(`${workspace}/datasets/${data}/${sA.sample}.gz`)
             if (stat && stat.size < smallest) {
                 smallest = stat.size
                 smallest_text = `## Smallest ${kind}: [${sA.sample}](https://arxiv.org/e-print/${sA.sample})\nSize: ${stat.size} bytes gz'd\n\n${objects_table(sA, sB)}\n`
@@ -141,15 +141,15 @@ ${data.length >= 50 ? '' : `Too many ${kind}s for GitHub's API payload size limi
     }
 }
 
-export function report_path(sha: string) {
-    return '/root/github-ci/reports/' + sha + '.jsonl'
+export function report_path(workspace: string, sha: string) {
+    return `${workspace}/reports/` + sha + '.jsonl'
 }
 
-export function markdown_report(dataset: string, a: string, b: string, eta?: string) {
-    let {missing, identical, identicalSuccessful, different, regressions, changes} = get_changes(a, b)
+export function markdown_report(workspace: string, a: string, b: string, eta?: string) {
+    let {missing, identical, identicalSuccessful, different, regressions, changes} = get_changes(workspace, a, b)
 
-    let regressionSection = make_section(regressions, "Regression");
-    let changeSection = make_section(changes, "Change");
+    let regressionSection = make_section(workspace, regressions, "Regression");
+    let changeSection = make_section(workspace, changes, "Change");
 
     return `
   ${eta ? `:construction: This test run is currently in progress. ${eta} :construction:` : ''}

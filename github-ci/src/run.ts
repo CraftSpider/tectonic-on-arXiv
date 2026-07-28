@@ -5,7 +5,7 @@ import pkg from 'nodegit';
 
 const {Repository, Commit, Reset, Merge} = pkg;
 import {Job, PR_RUN_DATASET} from "./misc.js"
-import {report_path, markdown_report, get_changes} from "./report.js"
+import {report_path, markdown_report} from "./report.js"
 
 
 const sleep = (m: number) => new Promise(r => setTimeout(r, m))
@@ -34,7 +34,7 @@ export async function get_merge_base(head_sha: string, base_sha: string) {
 }
 
 export async function run_check({head_sha, head_branch, base_sha, check_run_id}: Job) {
-    if (existsSync(report_path(head_sha))) {
+    if (existsSync(report_path(workspace(), head_sha))) {
         console.log("skipping", head_sha);
         return
     }
@@ -73,7 +73,7 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
 
         let report_start = new Date()
         etaTimer = setInterval(() => {
-            let res = readFileSync(report_path(head_sha))
+            let res = readFileSync(report_path(workspace(), head_sha))
             let lines = res.toString().match(/\n/g)!.length
             let seconds = (new Date() as any - (report_start as any)) as number / 1000
             let speed = (lines / seconds)
@@ -84,7 +84,7 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
             console.log(`still going ${head_sha} ${eta}`)
             if (base_sha) {
                 summary.clear()
-                    .then(() => summary.addRaw(markdown_report(PR_RUN_DATASET, base_sha, head_sha, eta)));
+                    .then(() => summary.addRaw(markdown_report(workspace(), base_sha, head_sha, eta)));
             }
         }, 15000)
 
@@ -116,7 +116,7 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
 
         if (base_sha) {
             await summary.clear();
-            summary.addRaw(markdown_report(PR_RUN_DATASET, base_sha, head_sha));
+            summary.addRaw(markdown_report(workspace(), base_sha, head_sha));
         }
     } catch (e) {
         if (etaTimer)
