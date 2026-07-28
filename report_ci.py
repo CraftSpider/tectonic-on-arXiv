@@ -156,21 +156,25 @@ def report(corpus: str, repo: str, name: str):
 
     work = queue.Queue()
     outlock = threading.Lock()
-    num_worker_threads = 32
+    num_worker_threads = 16
 
     def worker():
-        while True:
-            item = work.get()
-            if item is None:
-                print("worker shutting down")
-                break
-            maindoc = sample_maindoc[item.stem]
-            report = do_work(item, maindoc, tectonic)
-            work.task_done()
-            assert report
-            with outlock:
-                reportlog.write(json.dumps(report) + "\n")
-                reportlog.flush()
+        try:
+            while True:
+                item = work.get()
+                if item is None:
+                    print("worker shutting down")
+                    break
+                maindoc = sample_maindoc[item.stem]
+                report = do_work(item, maindoc, tectonic)
+                work.task_done()
+                assert report
+                with outlock:
+                    reportlog.write(json.dumps(report) + "\n")
+                    reportlog.flush()
+        except Exception as e:
+            print(f"worker encountered exception ({e}), shutting down")
+            work.shutdown(immediate=True)
 
     threads = []
     for _ in range(num_worker_threads):

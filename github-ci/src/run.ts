@@ -42,8 +42,6 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
 
     let repo = await open_repo()
 
-    const started_at = new Date().toISOString()
-
     let etaTimer = undefined
 
     try {
