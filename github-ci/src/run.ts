@@ -89,7 +89,7 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
         }, 15000)
 
         console.log("starting report_ci.py")
-        let proc = spawn("python3", ["report_ci.py", `${workspace()}/datasets/${PR_RUN_DATASET}`, workspace(), head_sha])
+        let proc = spawn("python3", ["/root/report_ci.py", `${workspace()}/datasets/${PR_RUN_DATASET}`, workspace(), head_sha])
         proc.on("message", (msg) => {
             console.log("message", msg)
         })
