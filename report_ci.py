@@ -112,7 +112,7 @@ def do_work(sample: Path, maindoc: str, tectonic: Path | str) -> dict[str, objec
     return report
 
 
-def report(corpus: str, repo: str, name: str):
+def main(corpus: str, repo: str, name: str):
     with open(corpus + ".json") as f:
         sample_maindoc = json.load(f)
 
@@ -174,11 +174,13 @@ def report(corpus: str, repo: str, name: str):
                     reportlog.write(json.dumps(report) + "\n")
                     reportlog.flush()
             except Exception as e:
-                print(f"worker encountered exception ({e}), skipping this item")
+                print(f"worker encountered exception ({e}), skipping this item", file=sys.stderr)
+                sys.stderr.flush()
                 work.task_done()
                 with outlock:
                     reportlog.write(json.dumps({"sample": item.stem, "statuscode": -1,
                                                 "seconds": 0, "results": []}))
+                    reportlog.flush()
                 return
 
     threads = []
@@ -202,4 +204,4 @@ def report(corpus: str, repo: str, name: str):
 
 
 assert len(sys.argv) == 4, "report_ci.py corpus repo name"
-report(sys.argv[1], sys.argv[2], sys.argv[3])
+main(sys.argv[1], sys.argv[2], sys.argv[3])

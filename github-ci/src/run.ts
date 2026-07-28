@@ -16,9 +16,8 @@ function workspace() {
 
 async function open_repo() {
     let repo = await Repository.open(workspace())
-    console.log("waiting a sec for fetchAll")
+    console.log("Fetching repository history...")
     await sleep(1000)
-    console.log("fetchAll")
     await repo.fetchAll()
     return repo
 }
@@ -52,7 +51,6 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
         }
 
         await Reset.reset(repo, commit, Reset.TYPE.HARD, {})
-        console.log("did checkout")
 
         console.log("building...")
 
