@@ -44,15 +44,15 @@ export function get_changes(workspace: string, base: string, head: string) {
     let identicalSuccessful = 0
     let regressions: [SampleRun, SampleRun][] = []
     let changes: [SampleRun, SampleRun][] = []
-    let longest_time = 0;
+    let longest_time = {seconds: 0, sample: ""};
     let time_sum = 0;
     for (let sample of samples) {
         let sA = samplesA[sample]
         let sB = samplesB[sample]
 
         if (sB) {
-            if (sB.seconds > longest_time) {
-                longest_time = sB.seconds;
+            if (sB.seconds > longest_time.seconds) {
+                longest_time = {seconds: sB.seconds, sample: sample};
             }
             time_sum += sB.seconds;
         }
@@ -111,13 +111,13 @@ export function get_summary(workspace: string, a: string) {
 
     let successful = 0;
     let failed = 0;
-    let longest_time = -Infinity;
+    let longest_time = {seconds: 0, sample: ""};
     let time_sum = 0;
     for (let sample of samples) {
         let sA = samplesA[sample]
 
-        if (sA.seconds > longest_time) {
-            longest_time = sA.seconds;
+        if (sA.seconds > longest_time.seconds) {
+            longest_time = {seconds: sA.seconds, sample: sample};
         }
         time_sum += sA.seconds;
 
@@ -224,7 +224,7 @@ Test run in progress: ${base} vs ${head}. ${eta}
   Regressions: ${regressions.length}
   Changes: ${changes.length}
   Missing: ${missing}
-  Longest Build Time: ${longest_time}
+  Longest Build Time: ${longest_time.seconds} (${longest_time.sample})
   Average Build Time: ${average_time}`
     } else {
         let {successful, failed, longest_time, average_time} = get_summary(workspace, head);
@@ -232,7 +232,7 @@ Test run in progress: ${base} vs ${head}. ${eta}
 Baseline run in progress: ${head}. ${eta}
   Sucesses: ${successful}
   Failures: ${failed}
-  Longest Build Time: ${longest_time}
+  Longest Build Time: ${longest_time.seconds} (${longest_time.sample})
   Average Build Time: ${average_time}`
     }
 }
@@ -272,7 +272,7 @@ ${base} vs ${head}
 
 | Measure | Count |
 | -- | -- |
-| Longest | ${longest_time} |
+| Longest | ${longest_time.seconds} (${longest_time.sample}) |
 | Average | ${average_time} | 
 
 ${regressionSection}
@@ -295,7 +295,7 @@ Baseline for ${head}
 
 | Measure | Count |
 | -- | -- |
-| Longest | ${longest_time} |
+| Longest | ${longest_time.seconds} (${longest_time.sample}) |
 | Average | ${average_time} |
 `
     }
