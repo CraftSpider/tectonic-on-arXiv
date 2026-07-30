@@ -1,0 +1,13 @@
+[package]
+name = "load-dataset"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { version = "1.0.228", features = ["derive"] }
+reqwest = "0.13"
+tokio = { version = "1.52", features = ["rt", "rt-multi-thread", "macros"] }
+reqwest-rate-limit = "0.1"
+governor = "0.10"
+futures = "0.3"
+quick-xml = { version = "0.39", features = ["serialize"] }

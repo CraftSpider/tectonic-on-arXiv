@@ -1,4 +1,4 @@
-import {readFileSync, statSync} from "fs";
+import {existsSync, readFileSync, statSync} from "fs";
 
 export interface SampleRun {
     sample: string,
@@ -98,16 +98,10 @@ export function get_summary(workspace: string, a: string) {
     let samples = Array.from(new Set([...Object.keys(samplesA)]))
     samples.sort()
 
-    let missing = 0
     let successful = 0
     let failed = 0
     for (let sample of samples) {
         let sA = samplesA[sample]
-
-        if (!sA) {
-            missing++
-            continue
-        }
 
         if (sA.statuscode) {
             failed += 1;
@@ -117,7 +111,6 @@ export function get_summary(workspace: string, a: string) {
     }
 
     return {
-        missing,
         successful,
         failed,
     }
@@ -156,7 +149,16 @@ function make_section(workspace: string, data: [SampleRun, SampleRun][], kind: s
             }
             count += 1;
 
-            let stat = statSync(`${workspace}/datasets/${data}/${sA.sample}.gz`)
+            const gz = `${workspace}/datasets/${sA.sample}.gz`;
+            const tar_gz = `${workspace}/datasets/${sA.sample}.tar.gz`;
+
+            let stat;
+            if (existsSync(gz)) {
+                stat = statSync(gz)
+            } else {
+                stat = statSync(tar_gz)
+            }
+
             if (stat && stat.size < smallest) {
                 smallest = stat.size
                 smallest_text = `## Smallest ${kind}: [${sA.sample}](https://arxiv.org/e-print/${sA.sample})\nSize: ${stat.size} bytes gz'd\n\n${objects_table(sA, sB)}\n`
@@ -238,7 +240,7 @@ ${regressionSection}
 
 ${changeSection}`;
     } else {
-        let {missing, successful, failed} = get_summary(workspace, head);
+        let {successful, failed} = get_summary(workspace, head);
 
         return `
 Baseline for ${head}
@@ -247,7 +249,6 @@ Baseline for ${head}
 
 | Samples | Count |
 | -- | -- |
-| Missing | ${missing} |
 | Successes | ${successful} |
 | Failures | ${failed} |
 `
