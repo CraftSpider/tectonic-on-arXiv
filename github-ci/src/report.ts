@@ -25,13 +25,13 @@ export function get_samples(workspace: string, sha: string) {
 }
 
 
-export function get_changes(workspace: string, a: string, b: string) {
+export function get_changes(workspace: string, base: string, head: string) {
     let samplesA: { [key: string]: SampleRun } = {}
     let samplesB: { [key: string]: SampleRun } = {}
 
-    for (let sA of get_samples(workspace, a))
+    for (let sA of get_samples(workspace, base))
         samplesA[sA.sample] = sA
-    for (let sB of get_samples(workspace, b))
+    for (let sB of get_samples(workspace, head))
         samplesB[sB.sample] = sB
 
 
@@ -44,9 +44,18 @@ export function get_changes(workspace: string, a: string, b: string) {
     let identicalSuccessful = 0
     let regressions: [SampleRun, SampleRun][] = []
     let changes: [SampleRun, SampleRun][] = []
+    let longest_time = 0;
+    let time_sum = 0;
     for (let sample of samples) {
         let sA = samplesA[sample]
         let sB = samplesB[sample]
+
+        if (sB) {
+            if (sB.seconds > longest_time) {
+                longest_time = sB.seconds;
+            }
+            time_sum += sB.seconds;
+        }
 
         if (!sA || !sB) {
             missing++
@@ -84,7 +93,9 @@ export function get_changes(workspace: string, a: string, b: string) {
         different,
         regressions,
         identicalSuccessful,
-        changes
+        changes,
+        longest_time,
+        average_time: time_sum / Object.keys(samplesB).length,
     }
 }
 
@@ -98,10 +109,17 @@ export function get_summary(workspace: string, a: string) {
     let samples = Array.from(new Set([...Object.keys(samplesA)]))
     samples.sort()
 
-    let successful = 0
-    let failed = 0
+    let successful = 0;
+    let failed = 0;
+    let longest_time = -Infinity;
+    let time_sum = 0;
     for (let sample of samples) {
         let sA = samplesA[sample]
+
+        if (sA.seconds > longest_time) {
+            longest_time = sA.seconds;
+        }
+        time_sum += sA.seconds;
 
         if (sA.statuscode) {
             failed += 1;
@@ -113,6 +131,8 @@ export function get_summary(workspace: string, a: string) {
     return {
         successful,
         failed,
+        longest_time,
+        average_time: time_sum / samples.length,
     }
 }
 
@@ -191,7 +211,9 @@ export function log_report(workspace: string, base: string | undefined, head: st
             identicalSuccessful,
             different,
             regressions,
-            changes
+            changes,
+            longest_time,
+            average_time,
         } = get_changes(workspace, base, head)
 
         return `
@@ -201,9 +223,17 @@ Test run in progress: ${base} vs ${head}. ${eta}
   Different: ${different}
   Regressions: ${regressions.length}
   Changes: ${changes.length}
-  Missing: ${missing}`
+  Missing: ${missing}
+  Longest Build Time: ${longest_time}
+  Average Build Time: ${average_time}`
     } else {
-        return `Baseline run in progress: ${head}. ${eta}`
+        let {successful, failed, longest_time, average_time} = get_summary(workspace, head);
+        return `
+Baseline run in progress: ${head}. ${eta}
+  Sucesses: ${successful}
+  Failures: ${failed}
+  Longest Build Time: ${longest_time}
+  Average Build Time: ${average_time}`
     }
 }
 
@@ -215,7 +245,9 @@ export function markdown_report(workspace: string, base: string | undefined, hea
             identicalSuccessful,
             different,
             regressions,
-            changes
+            changes,
+            longest_time,
+            average_time,
         } = get_changes(workspace, base, head);
 
         let regressionSection = make_section(workspace, regressions, "Regression");
@@ -236,11 +268,18 @@ ${base} vs ${head}
 | Regressions | ${regressions.length} |
 | Missing  | ${missing} |
 
+### Build Times
+
+| Measure | Count |
+| -- | -- |
+| Longest | ${longest_time} |
+| Average | ${average_time} | 
+
 ${regressionSection}
 
 ${changeSection}`;
     } else {
-        let {successful, failed} = get_summary(workspace, head);
+        let {successful, failed, longest_time, average_time} = get_summary(workspace, head);
 
         return `
 Baseline for ${head}
@@ -251,6 +290,13 @@ Baseline for ${head}
 | -- | -- |
 | Successes | ${successful} |
 | Failures | ${failed} |
+
+### Build Times
+
+| Measure | Count |
+| -- | -- |
+| Longest | ${longest_time} |
+| Average | ${average_time} |
 `
     }
 }
