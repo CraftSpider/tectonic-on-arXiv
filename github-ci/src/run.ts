@@ -5,7 +5,7 @@ import pkg from 'nodegit';
 
 const {Repository, Commit, Reset, Merge} = pkg;
 import {Job, PR_RUN_DATASET} from "./misc.js"
-import {report_path, markdown_report} from "./report.js"
+import {report_path, markdown_report, log_report} from "./report.js"
 
 
 const sleep = (m: number) => new Promise(r => setTimeout(r, m))
@@ -32,7 +32,7 @@ export async function get_merge_base(head_sha: string, base_sha: string) {
     return merge_base.tostrS()
 }
 
-export async function run_check({head_sha, head_branch, base_sha, check_run_id}: Job) {
+export async function run_check({head_sha, head_branch, base_sha}: Job) {
     if (existsSync(report_path(workspace(), head_sha))) {
         console.log("skipping", head_sha);
         return
@@ -85,11 +85,7 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
             let etaSecs = Math.round((SAMPLES - lines) / speed)
             let etaT = etaSecs > 270 ? Math.round(etaSecs / 60) + 'm' : etaSecs + 's'
             let eta = `ETA: ${etaT} - ${lines} / ${SAMPLES}`
-            console.log(`still going ${head_sha} ${eta}`)
-            if (base_sha) {
-                summary.clear()
-                    .then(() => summary.addRaw(markdown_report(workspace(), base_sha, head_sha, eta)));
-            }
+            console.log(log_report(workspace(), base_sha, head_sha, eta));
         }, 15000)
 
         console.log("starting report_ci.py")
@@ -120,10 +116,9 @@ export async function run_check({head_sha, head_branch, base_sha, check_run_id}:
         console.log("report_ci.py finished")
         clearInterval(etaTimer)
 
-        if (base_sha) {
-            await summary.clear();
-            summary.addRaw(markdown_report(workspace(), base_sha, head_sha));
-        }
+        summary.emptyBuffer();
+        summary.addRaw(markdown_report(workspace(), base_sha, head_sha));
+        await summary.write({overwrite: true})
     } catch (e) {
         if (etaTimer)
             clearInterval(etaTimer)

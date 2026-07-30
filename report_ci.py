@@ -11,7 +11,7 @@ import tempfile
 import hashlib
 import queue
 import threading
-from typing import overload, Literal, Union
+from typing import overload, Literal, Union, TypedDict
 
 
 def sha256sum(filename: str | Path) -> str:
@@ -89,12 +89,10 @@ ARGUMENTS = [
 
 
 def do_work(sample: Path, maindoc: str, tectonic: Path | str) -> dict[str, object]:
-    print(sample)
     env = os.environ.copy()
     env["SOURCE_DATE_EPOCH"] = "1456304492"
     env["TECTONIC_UNTRUSTED_MODE"] = "1"
     with TestEnv(sample, is_tar=(maindoc != sample.stem)) as d:
-        print(d)
         excluded = capture_files(d, as_set=True)
         start = time.time()
         try:
@@ -106,9 +104,7 @@ def do_work(sample: Path, maindoc: str, tectonic: Path | str) -> dict[str, objec
             statuscode = -99999
         delta = time.time() - start
         results = capture_files(d, excluded=excluded)
-        report = dict(sample=sample.stem, statuscode=statuscode,
-                      seconds=delta, results=results)
-    print(json.dumps(report))
+        report = {"sample": sample.stem, "statuscode": statuscode, "seconds": delta, "results": results}
     return report
 
 

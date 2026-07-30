@@ -88,6 +88,41 @@ export function get_changes(workspace: string, a: string, b: string) {
     }
 }
 
+export function get_summary(workspace: string, a: string) {
+    let samplesA: { [key: string]: SampleRun } = {}
+
+    for (let sA of get_samples(workspace, a))
+        samplesA[sA.sample] = sA
+
+
+    let samples = Array.from(new Set([...Object.keys(samplesA)]))
+    samples.sort()
+
+    let missing = 0
+    let successful = 0
+    let failed = 0
+    for (let sample of samples) {
+        let sA = samplesA[sample]
+
+        if (!sA) {
+            missing++
+            continue
+        }
+
+        if (sA.statuscode) {
+            failed += 1;
+        } else {
+            successful += 1;
+        }
+    }
+
+    return {
+        missing,
+        successful,
+        failed,
+    }
+}
+
 function objects_table(sA: SampleRun, sB: SampleRun) {
     const pre = (text: string) => '`' + text + '`';
     const cmp = (a: string, b: string) => `${pre(a)} | ${a === b ? '=' : '**≠**'} | ${pre(b)}`
@@ -145,28 +180,76 @@ export function report_path(workspace: string, sha: string) {
     return `${workspace}/reports/` + sha + '.jsonl'
 }
 
-export function markdown_report(workspace: string, a: string, b: string, eta?: string) {
-    let {missing, identical, identicalSuccessful, different, regressions, changes} = get_changes(workspace, a, b)
+export function log_report(workspace: string, base: string | undefined, head: string, eta?: string) {
 
-    let regressionSection = make_section(workspace, regressions, "Regression");
-    let changeSection = make_section(workspace, changes, "Change");
+    if (base) {
+        let {
+            missing,
+            identical,
+            identicalSuccessful,
+            different,
+            regressions,
+            changes
+        } = get_changes(workspace, base, head)
 
-    return `
-  ${eta ? `:construction: This test run is currently in progress. ${eta} :construction:` : ''}
-  
-  ${a} vs ${b}
-  
-  ## Summary
-  
-  | Samples | Count |
-  | -- | -- |
-  | Identical | ${identical} |
-  | Identical & Successful | ${identicalSuccessful} |
-  | Different | ${different} |
-  | Regressions | ${regressions.length} |
-  | Missing  | ${missing} |
-  
-  ${regressionSection}
-  
-  ${changeSection}`;
+        return `
+Test run in progress: ${base} vs ${head}. ${eta}
+  Identical: ${identical}
+  Identical & Successful: ${identicalSuccessful}
+  Different: ${different}
+  Regressions: ${regressions.length}
+  Changes: ${changes.length}
+  Missing: ${missing}`
+    } else {
+        return `Baseline run in progress: ${head}. ${eta}`
+    }
+}
+
+export function markdown_report(workspace: string, base: string | undefined, head: string, eta?: string) {
+    if (base) {
+        let {
+            missing,
+            identical,
+            identicalSuccessful,
+            different,
+            regressions,
+            changes
+        } = get_changes(workspace, base, head);
+
+        let regressionSection = make_section(workspace, regressions, "Regression");
+        let changeSection = make_section(workspace, changes, "Change");
+
+        return `
+${eta ? `:construction: This test run is currently in progress. ${eta} :construction:` : ''}
+
+${base} vs ${head}
+
+## Summary
+
+| Samples | Count |
+| -- | -- |
+| Identical | ${identical} |
+| Identical & Successful | ${identicalSuccessful} |
+| Different | ${different} |
+| Regressions | ${regressions.length} |
+| Missing  | ${missing} |
+
+${regressionSection}
+
+${changeSection}`;
+    } else {
+        let {missing, successful, failed} = get_summary(workspace, head);
+
+        return `
+Baseline for ${head}
+
+## Summary
+
+| Samples | Count |
+| -- | -- |
+| Missing | ${missing} |
+| Successes | ${successful} |
+| Failures | ${failed} |
+`
+    }
 }
