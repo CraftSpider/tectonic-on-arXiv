@@ -49,12 +49,7 @@ def capture_files(d: Path, excluded: set[str] | None = None, as_set: bool = Fals
             continue
         elif excluded is not None and digest in excluded:
             continue
-
-        ext = f.suffix or ".bin"
-        target = Path("objects") / (digest + ext)
-        if not target.exists():
-            shutil.copy(f, target)
-        captured[f.name] = digest + ext
+        captured[f.name] = digest
     if as_set:
         return _set
     return captured
