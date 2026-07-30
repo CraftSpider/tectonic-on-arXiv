@@ -10,7 +10,7 @@ inputs:
     default: ''
 runs:
   using: 'docker'
-  image: 'Dockerfile'
+  image: 'tectonictypesetting/toa:latest'
   args:
     - ${{ inputs.head }}
     - ${{ inputs.base }}
