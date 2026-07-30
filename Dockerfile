@@ -25,7 +25,6 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 23F3D4EA75716059 \
     && apt update && apt install gh
 
 COPY report_ci.py /root
-COPY meta.py /root
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 COPY github-ci /root/github-ci
