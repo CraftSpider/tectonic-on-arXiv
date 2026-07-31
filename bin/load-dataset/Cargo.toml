@@ -3,11 +3,19 @@ name = "load-dataset"
 version = "0.1.0"
 edition = "2024"
 
+[profile.bench]
+debug = true
+
 [dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0"
 reqwest = "0.13"
-tokio = { version = "1.52", features = ["rt", "rt-multi-thread", "macros"] }
-reqwest-rate-limit = "0.1"
+tokio = { version = "1.52", features = ["rt", "rt-multi-thread", "macros", "fs"] }
 governor = "0.10"
 futures = "0.3"
 quick-xml = { version = "0.39", features = ["serialize"] }
+clap = { version = "4.6", features = ["derive"] }
+tempdir = "0.3"
+flate2 = "1.1"
+tar = "0.4"
+memchr = "2.8"
