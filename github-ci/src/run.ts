@@ -5,7 +5,7 @@ import pkg from 'nodegit';
 
 const {Repository, Commit, Reset, Merge} = pkg;
 import {Job, PR_RUN_DATASET} from "./misc.js"
-import {report_path, markdown_report, log_report} from "./report.js"
+import {report_path, markdown_report, log_report, get_changes} from "./report.js"
 
 
 const sleep = (m: number) => new Promise(r => setTimeout(r, m))
@@ -118,7 +118,14 @@ export async function run_check({head_sha, head_branch, base_sha}: Job) {
 
         summary.emptyBuffer();
         summary.addRaw(markdown_report(workspace(), base_sha, head_sha));
-        await summary.write({overwrite: true})
+        await summary.write({overwrite: true});
+
+        if (base_sha) {
+            const changes = get_changes(workspace(), base_sha, head_sha);
+            if (changes.missing !== 0 || changes.regressions.length !== 0 || changes.changes.length !== 0) {
+                setFailed("Regressions detected in run");
+            }
+        }
     } catch (e) {
         if (etaTimer)
             clearInterval(etaTimer)
